@@ -61,3 +61,5 @@
 @media (prefers-reduced-motion:reduce){.td-tile,.td-tile.playing img,.td-opt.wrong{animation:none;transition:none}}
 .td-overlay[hidden]{display:none}
 .td-tile img,.td-opt img,.td-hubcard img,.td-overlay .td-card img{height:auto}
+
+.td-hubh{margin-top:28px}
