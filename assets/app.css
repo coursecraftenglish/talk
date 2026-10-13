@@ -63,3 +63,5 @@
 .td-tile img,.td-opt img,.td-hubcard img,.td-overlay .td-card img{height:auto}
 
 .td-hubh{margin-top:28px}
+
+.td-voice{display:inline-flex;border:2px solid #e2d6c6;border-radius:999px;overflow:hidden;margin-right:8px}.td-voice button{border:0;background:#fff;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer;color:#1f2a37}.td-voice button[aria-pressed=true]{background:#123C52;color:#fff}
