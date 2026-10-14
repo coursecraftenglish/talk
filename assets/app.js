@@ -57,15 +57,55 @@
     });
     L.appendChild(h("div",{"class":"td-row"},[h("div",{"class":"td-rowhead"},[h("span",{"class":"td-rownum",text:String(r+1)}),sb]),opts]));
   });
-  // projector
-  var ov=document.getElementById("proj"),pi=0;
-  function show(i){pi=(i+T.words.length)%T.words.length;ov.querySelector("img").src=pic(pi);ov.querySelector(".td-big").textContent=T.words[pi];ov.querySelector(".td-count").textContent=(pi+1)+" / "+T.words.length;ov.querySelector(".td-card").setAttribute("data-say",wid(pi));say(wid(pi));}
-  function key(e){if(e.key==="ArrowRight")show(pi+1);else if(e.key==="ArrowLeft")show(pi-1);else if(e.key===" "){e.preventDefault();say(wid(pi));}else if(e.key==="Escape")close();}
-  function open(){ov.hidden=false;document.addEventListener("keydown",key);show(0);}
+  // projector: Words, Say it! and Listen and Circle
+  var ov=document.getElementById("proj"),mode="words",pi=0,pans={};
+  var MODES=[["words","Words",T.words.length],["say","Say it!",T.phrases.length],["listen","Listen and Circle",T.listen.length]].filter(function(m){return m[2]>0;});
+  ov.innerHTML="";
+  var tabs=h("div",{"class":"td-ptabs",role:"tablist"});
+  MODES.forEach(function(m){var t=h("button",{type:"button","class":"td-ptab","data-mode":m[0],role:"tab",text:m[1]});t.addEventListener("click",function(){go(m[0],0);});tabs.appendChild(t);});
+  var stage=h("div",{"class":"td-stage"});
+  var prev=h("button",{type:"button","class":"td-arrow","aria-label":"Previous",text:"‹"}),next=h("button",{type:"button","class":"td-arrow","aria-label":"Next",text:"›"}),cnt=h("span",{"class":"td-count"});
+  var closeB=h("button",{type:"button","class":"td-close",text:"Close"});
+  ov.appendChild(closeB);ov.appendChild(tabs);ov.appendChild(stage);ov.appendChild(h("div",{"class":"td-nav"},[prev,cnt,next]));
+  function n(){for(var k=0;k<MODES.length;k++)if(MODES[k][0]===mode)return MODES[k][2];return 1;}
+  function play(){if(mode==="words")say(wid(pi));else if(mode==="say")say("p"+(pi+1));else say(wid(T.listen[pi].target),other());}
+  function draw(){
+    stage.innerHTML="";cnt.textContent=(pi+1)+" / "+n();
+    tabs.querySelectorAll(".td-ptab").forEach(function(t){t.setAttribute("aria-selected",String(t.getAttribute("data-mode")===mode));});
+    if(mode==="words"){
+      var c=h("button",{type:"button","class":"td-card","data-say":wid(pi)},[h("img",{src:pic(pi),alt:""}),h("span",{"class":"td-big",text:T.words[pi]})]);
+      c.addEventListener("click",play);stage.appendChild(c);
+    }else if(mode==="say"){
+      var id="p"+(pi+1);
+      var c2=h("button",{type:"button","class":"td-card td-pcard","data-say":id},[h("img",{src:B+"a/cast/"+T.phraseCast[pi]+".webp",alt:""}),h("span",{"class":"td-pbig",text:T.phrases[pi]}),h("span",{"class":"td-ptip",text:"Listen. Then say it together."})]);
+      c2.addEventListener("click",play);stage.appendChild(c2);
+    }else{
+      var row=T.listen[pi];
+      var sp=h("button",{type:"button","class":"td-pspk","aria-label":"Play"});sp.innerHTML=spk;sp.addEventListener("click",play);
+      var opts=h("div",{"class":"td-popts"});
+      row.options.forEach(function(o){
+        var ob=h("button",{type:"button","class":"td-opt td-popt"},[h("img",{src:pic(o),alt:""})]);
+        if(pans[pi]===o)mk(ob,o===row.target);
+        ob.addEventListener("click",function(){opts.querySelectorAll(".td-popt").forEach(function(x){x.classList.remove("right","wrong");var m=x.querySelector(".td-mark");if(m)m.remove();});pans[pi]=o;mk(ob,o===row.target);pscore();});
+        opts.appendChild(ob);
+      });
+      stage.appendChild(h("div",{"class":"td-plisten"},[h("div",{"class":"td-prow"},[h("span",{"class":"td-rownum td-pnum",text:String(pi+1)}),sp]),opts,h("p",{"class":"td-pscore",id:"pscore"})]));
+      pscore();
+    }
+  }
+  function mk(ob,ok){ob.classList.add(ok?"right":"wrong");var m=h("span",{"class":"td-mark",text:ok?"✓":"✗"});m.style.background=ok?"#2E9E5B":"#D9534F";ob.appendChild(m);}
+  function pscore(){var e=document.getElementById("pscore");if(!e)return;var a=0,c=0;for(var r in pans){a++;if(T.listen[r].target===pans[r])c++;}e.textContent=a?c+" of "+T.listen.length+" correct":"Tap the speaker. Then tap the picture you hear.";}
+  function go(m,i){mode=m;pi=(i+n())%n();draw();play();}
+  function key(e){if(e.key==="ArrowRight")go(mode,pi+1);else if(e.key==="ArrowLeft")go(mode,pi-1);else if(e.key===" "){e.preventDefault();play();}else if(e.key==="Escape")close();}
+  function open(m){ov.hidden=false;document.addEventListener("keydown",key);go(m||"words",0);}
   function close(){ov.hidden=true;document.removeEventListener("keydown",key);if(el)el.pause();}
-  document.getElementById("projbtn").addEventListener("click",open);
-  ov.querySelector(".td-close").addEventListener("click",close);
-  ov.querySelector(".td-card").addEventListener("click",function(){say(wid(pi));});
-  ov.querySelector("[data-prev]").addEventListener("click",function(){show(pi-1);});
-  ov.querySelector("[data-next]").addEventListener("click",function(){show(pi+1);});
+  prev.addEventListener("click",function(){go(mode,pi-1);});next.addEventListener("click",function(){go(mode,pi+1);});closeB.addEventListener("click",close);
+  document.getElementById("projbtn").addEventListener("click",function(){open("words");});
+  // a projector button on each section
+  [["Say it","say"],["Listen and circle","listen"]].forEach(function(x){
+    var sec=document.querySelector('section[aria-label="'+x[0]+'"]');if(!sec)return;var h2=sec.querySelector(".td-h2");if(!h2)return;
+    var b=h("button",{type:"button","class":"td-proj td-proj-sm"});b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Projector';
+    b.addEventListener("click",function(){open(x[1]);});
+    var wrap=h("div",{"class":"td-h2row"});h2.parentNode.insertBefore(wrap,h2);wrap.appendChild(h2);wrap.appendChild(b);
+  });
 })();

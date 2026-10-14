@@ -65,3 +65,26 @@
 .td-hubh{margin-top:28px}
 
 .td-voice{display:inline-flex;border:2px solid #e2d6c6;border-radius:999px;overflow:hidden;margin-right:8px}.td-voice button{border:0;background:#fff;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer;color:#1f2a37}.td-voice button[aria-pressed=true]{background:#123C52;color:#fff}
+
+.td-h2row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.td-proj-sm{font-size:14px;padding:6px 12px}
+.td-ptabs{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;flex-wrap:wrap;justify-content:center}
+.td-ptab{font:inherit;font-weight:700;font-size:clamp(14px,2vh,18px);border:0;background:transparent;color:var(--navy);padding:8px 16px;border-radius:999px;cursor:pointer}
+.td-ptab[aria-selected="true"]{background:var(--navy);color:#fff}
+.td-stage{display:flex;align-items:center;justify-content:center;width:100%;flex:0 1 auto;min-height:0}
+.td-overlay .td-pcard{width:min(110vh,92vw);gap:2vh}
+.td-overlay .td-pcard img{width:min(30vh,40vw);border-radius:50%}
+.td-pbig{font-size:clamp(32px,7vh,84px);font-weight:700;color:var(--navy);line-height:1.15;text-align:center}
+.td-ptip{font-size:clamp(14px,2.2vh,22px);color:var(--grey);font-weight:700}
+.td-pcard.playing,.td-overlay .td-card.playing{box-shadow:0 0 0 6px var(--sun)}
+.td-plisten{background:#fff;border:1px solid var(--line);border-radius:28px;padding:3vh 3vw;display:flex;flex-direction:column;align-items:center;gap:2.5vh;width:min(120vh,94vw)}
+.td-prow{display:flex;align-items:center;gap:2vw}
+.td-pnum{width:6vh;height:6vh;font-size:3vh}
+.td-pspk{width:12vh;height:12vh;min-width:64px;min-height:64px;border-radius:50%;border:0;background:var(--teal);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 20px rgba(42,157,143,.3)}
+.td-pspk svg{width:55%;height:55%}
+.td-popts{display:grid;grid-template-columns:repeat(3,1fr);gap:2.5vw;width:100%}
+.td-popt img{max-width:none;width:100%}
+.td-popt .td-mark{width:5vh;height:5vh;min-width:30px;min-height:30px;font-size:3vh}
+.td-pscore{font-weight:700;color:var(--navy);font-size:clamp(16px,2.6vh,26px);margin:0}
+.td-stage .td-card:not(.td-pcard){width:min(58vh,90vw)}
+.td-overlay .td-card{font:inherit}
