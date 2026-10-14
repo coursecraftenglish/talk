@@ -141,7 +141,7 @@ async function check(f32) {
     const ws = await wordScores(enc, target);
     flags = ws.map((x, k) => (x.lp < -4 ? k : -1)).filter((k) => k >= 0);
     const bad = ws.filter((x) => x.lp < -8).length, allow = ws.length >= 7 ? 2 : 1;
-    st = flags.length === 0 ? 3 : flags.length <= allow && bad <= 1 ? 2 : 1;
+    st = flags.length === 0 ? 3 : bad === 0 && flags.length <= allow ? 2 : 1; // a clearly different word means 1 star
     window.__mtWords = ws.map((x) => [x.w, +x.lp.toFixed(2)]);
   }
   window.__mtLast = { heard, gap };
@@ -186,7 +186,7 @@ async function onMic() {
       const { heard, st, flags } = await check(await toMono16k(blob));
       $(".mt-stars").innerHTML = [1, 2, 3].map((k) => `<span class="${k <= st ? "" : "off"}">★</span>`).join("");
       const m = MSG[st]; $(".mt-msg").textContent = m[Math.floor(Math.random() * m.length)];
-      if (mode === "say" && flags.length && st > 1) { $(".mt-msg").textContent = flags.length === 1 ? "Almost! Check the word in red." : "Almost! Check the words in red."; }
+      if (mode === "say" && flags.length) { const w = flags.length === 1 ? "the word" : "the words"; $(".mt-msg").textContent = st > 1 ? `Almost! Check ${w} in red.` : `Listen again. Check ${w} in red.`; }
       if (mode === "say" && flags.length) $(".mt-word").innerHTML = list()[i].split(" ").map((w, k) => flags.includes(k) ? `<span class="mt-bad">${esc(w)}</span>` : esc(w)).join(" ");
       $(".mt-heard").textContent = st < 3 && heard.trim() ? `I heard: “${heard.trim()}”` : "";
     }
