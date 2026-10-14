@@ -123,7 +123,14 @@ function textScore(heard, target) {
 async function check(f32) {
   const target = list()[i]; const { enc, heard, lg } = await hear(f32);
   let st = textScore(heard, target), gap = null;
-  if (st < 3) { gap = lg - (await targetLP(enc, target)); st = gap <= 2 ? 3 : gap <= 4.5 ? 2 : 1; }
+  if (st < 3) {
+    gap = lg - (await targetLP(enc, target));
+    if (mode === "words") st = gap <= 2 ? 3 : gap <= 4.5 ? 2 : 1;
+    else { // sentences: the gap is averaged over more words, so the bands are tighter; partly right sentences get 2 stars
+      const hw = norm(heard).split(" ").filter(Boolean), tw = norm(target).split(" "); const ws = hw.length ? 1 - lev(hw, tw) / Math.max(hw.length, tw.length) : 0;
+      st = gap <= 1.5 ? 3 : gap <= 2.5 || ws >= 0.5 ? 2 : 1;
+    }
+  }
   window.__mtLast = { heard, gap };
   return { heard, st };
 }
