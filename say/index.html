@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Say it! · Talking Picture Dictionary</title>
+<link rel="stylesheet" href="../assets/app.css">
+<style>
+.sy-wrap{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+.sy-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.sy-head a{color:var(--navy);font-weight:700;text-decoration:none;font-size:15px}
+.sy-card{background:#fff;border:1px solid var(--line);border-radius:28px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.sy-pic{width:min(72vw,320px);aspect-ratio:1;border-radius:20px;background:#f4f1ea;object-fit:cover}
+.sy-word{font-size:clamp(40px,11vw,64px);font-weight:700;color:var(--navy);line-height:1.05;text-align:center}
+.sy-row{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.sy-btn{font:inherit;font-weight:700;border:0;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.sy-listen{background:var(--sky);color:var(--navy);border:2px solid var(--navy);font-size:18px;padding:10px 20px}
+.sy-mic{width:112px;height:112px;border-radius:50%;justify-content:center;background:var(--teal);color:#fff;font-size:20px;flex-direction:column;gap:2px;box-shadow:0 8px 20px rgba(42,157,143,.35);transition:transform .12s}
+.sy-mic svg{width:40px;height:40px}
+.sy-mic:active{transform:scale(.96)}
+.sy-mic.rec{background:#E4572E;animation:sy-pulse 1s infinite}
+.sy-mic:disabled{background:#9fb3bd;box-shadow:none;cursor:default;animation:none}
+@keyframes sy-pulse{0%{box-shadow:0 0 0 0 rgba(228,87,46,.5)}100%{box-shadow:0 0 0 22px rgba(228,87,46,0)}}
+.sy-stars{font-size:44px;letter-spacing:6px;min-height:52px;color:var(--sun)}
+.sy-stars .off{color:#dfe5e9}
+.sy-msg{font-size:20px;font-weight:700;color:var(--navy);text-align:center;min-height:28px}
+.sy-heard{font-size:15px;color:var(--grey);min-height:20px;text-align:center}
+.sy-nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.sy-nav button{font:inherit;font-weight:700;font-size:18px;background:#fff;border:1px solid var(--line);color:var(--navy);border-radius:999px;padding:10px 22px;cursor:pointer}
+.sy-count{color:var(--grey);font-weight:700}
+.sy-load{width:100%;background:var(--cream);border:1px solid #efe1bd;border-radius:16px;padding:12px 14px;font-size:15px;color:var(--ink)}
+.sy-bar{height:8px;background:#efe1bd;border-radius:99px;overflow:hidden;margin-top:8px}
+.sy-bar i{display:block;height:100%;width:0;background:var(--teal);transition:width .2s}
+.sy-me{background:transparent;color:var(--teal);font-size:16px;padding:6px 10px;text-decoration:underline}
+.sy-me[hidden],.sy-load[hidden]{display:none}
+.sy-note{font-size:13px;color:var(--grey);text-align:center;margin-top:14px}
+</style>
+</head>
+<body class="td">
+<div class="sy-wrap">
+  <div class="sy-head"><a id="back" href="../">← Back</a><span class="td-chip" id="chip">Say it!</span></div>
+  <div class="sy-card">
+    <img class="sy-pic" id="pic" alt="">
+    <div class="sy-word" id="word"></div>
+    <div class="sy-row">
+      <button class="sy-btn sy-listen" id="listen" type="button">🔊 Listen</button>
+    </div>
+    <button class="sy-btn sy-mic" id="mic" type="button" disabled aria-label="Say it">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2z"/></svg>
+      <span id="micl">Say it!</span>
+    </button>
+    <div class="sy-stars" id="stars" aria-live="polite"></div>
+    <div class="sy-msg" id="msg">Tap 🔊, then tap the green button and say the word.</div>
+    <div class="sy-heard" id="heard"></div>
+    <button class="sy-btn sy-me" id="me" type="button" hidden>▶ Hear me</button>
+    <div class="sy-load" id="load">
+      <div id="loadt">Getting the listening helper ready. This happens once.</div>
+      <div class="sy-bar"><i id="bar"></i></div>
+    </div>
+  </div>
+  <div class="sy-nav"><button id="prev" type="button">←</button><span class="sy-count" id="count"></span><button id="next" type="button">→</button></div>
+  <p class="sy-note">Your voice stays on this device. Nothing is recorded or sent.</p>
+</div>
+<script type="module">
+const qs=new URLSearchParams(location.search);
+const slug=(qs.get('t')||'animals').replace(/[^a-z-]/g,'');
+const $=id=>document.getElementById(id);
+let T=null, i=0, voice='gia', asr=null, busy=false, lastBlobUrl=null;
+try{voice=localStorage.getItem('tpd-voice')||null}catch(e){}
+
+// ---- topic data (read from the topic page) ----
+async function loadTopic(){
+  const h=await (await fetch(`../d/${slug}/`)).text();
+  const m=h.match(/TOPIC=(\{.*?\});/s); T=JSON.parse(m[1]);
+  if(!voice) voice=T.voice||'gia';
+  $('chip').textContent='Say it! · '+T.title; $('back').href=`../d/${slug}/`;
+  i=Math.max(0,Math.min(T.words.length-1,(parseInt(qs.get('w'))||1)-1)); show();
+}
+const wid=k=>'w'+String(k+1).padStart(2,'0');
+function show(){
+  $('pic').src=`../a/${slug}/${wid(i)}.webp`; $('word').textContent=T.words[i];
+  $('count').textContent=`${i+1} / ${T.words.length}`; clearResult();
+}
+function clearResult(){ $('stars').innerHTML=''; $('heard').textContent=''; $('me').hidden=true;
+  if(asr) $('msg').textContent='Tap 🔊, then tap the green button and say the word.'; }
+const audio=new Audio();
+function listen(){ audio.src=`../a/${slug}/${voice}/${wid(i)}.mp3`; audio.play().catch(()=>{}); }
+$('listen').onclick=listen;
+$('prev').onclick=()=>{i=(i-1+T.words.length)%T.words.length;show()};
+$('next').onclick=()=>{i=(i+1)%T.words.length;show()};
+
+// ---- speech model (runs in the browser; nothing leaves the device) ----
+const M='Xenova/whisper-tiny.en'; let tf,proc,tok,mdl;
+async function loadModel(){
+  tf=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
+  tf.env.allowLocalModels=false;
+  const files={}; const progress_callback=p=>{ if(p.status==='progress'&&p.total){files[p.file]=[p.loaded,p.total];
+      let x=0,y=0;for(const k in files){x+=files[k][0];y+=files[k][1]} $('bar').style.width=Math.round(100*x/y)+'%';
+      $('loadt').textContent=`Getting the listening helper ready (${Math.max(1,Math.round(y/1e6))} MB, only the first time)…`;}};
+  proc=await tf.AutoProcessor.from_pretrained(M,{progress_callback});
+  tok=await tf.AutoTokenizer.from_pretrained(M,{progress_callback});
+  mdl=await tf.WhisperForConditionalGeneration.from_pretrained(M,{dtype:'q8',device:'wasm',progress_callback});
+  asr=true; $('load').hidden=true; $('mic').disabled=false; clearResult();
+}
+const SOT=[50257,50362], EOT=50256;
+function logSoftmaxAt(d,o,V,id){let mx=-1e9;for(let v=0;v<V;v++) if(d[o+v]>mx) mx=d[o+v]; let z=0; for(let v=0;v<V;v++) z+=Math.exp(d[o+v]-mx); return d[o+id]-mx-Math.log(z);}
+async function decoder(enc,ids){const dec=new tf.Tensor('int64',BigInt64Array.from(ids.map(BigInt)),[1,ids.length]); return (await mdl({encoder_outputs:enc,decoder_input_ids:dec})).logits;}
+async function seqLogProb(enc,ids){ // average log-probability of the tokens after the start tokens
+  const L=await decoder(enc,ids), V=L.dims[2], d=L.data; let s=0,n=0;
+  for(let k=SOT.length-1;k<ids.length-1;k++){ s+=logSoftmaxAt(d,k*V,V,ids[k+1]); n++ } return s/n;
+}
+async function listenTo(f32){
+  const {input_features}=await proc(f32);
+  const r=await mdl.sessions.model.run({input_features:input_features.ort_tensor}); const enc=new tf.Tensor(r.last_hidden_state);
+  const ids=SOT.slice(); let s=0,n=0;
+  for(let step=0;step<12;step++){ const L=await decoder(enc,ids), V=L.dims[2], d=L.data, o=(ids.length-1)*V;
+    let bi=0,bv=-1e9; for(let v=0;v<V;v++) if(d[o+v]>bv){bv=d[o+v];bi=v}
+    s+=logSoftmaxAt(d,o,V,bi); n++; ids.push(bi); if(bi===EOT) break; }
+  if(ids[ids.length-1]!==EOT) ids.push(EOT);
+  const heard=tok.decode(ids.slice(SOT.length,-1),{skip_special_tokens:true});
+  return {enc,heard,lg:s/n};
+}
+async function targetLogProb(enc,target){ // how well the target word fits this audio
+  const W=target[0].toUpperCase()+target.slice(1); let best=-1e9;
+  for(const v of [' '+W+'.',' '+target,' '+W]){ const t=tok.encode(v,{add_special_tokens:false}); best=Math.max(best,await seqLogProb(enc,SOT.concat(t,[EOT]))) }
+  return best;
+}
+
+// ---- recording with auto-stop on silence ----
+let stream=null;
+async function record(){
+  stream=stream||await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:1}});
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const src=ctx.createMediaStreamSource(stream); const an=ctx.createAnalyser(); an.fftSize=1024; src.connect(an);
+  const rec=new MediaRecorder(stream); const chunks=[]; rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+  const buf=new Float32Array(an.fftSize); let spoke=false, quietSince=performance.now(); const t0=performance.now();
+  rec.start();
+  await new Promise(res=>{
+    const tick=()=>{ an.getFloatTimeDomainData(buf); let s=0; for(const v of buf) s+=v*v; const rms=Math.sqrt(s/buf.length);
+      const now=performance.now();
+      if(rms>0.02){spoke=true; quietSince=now}
+      if((spoke && now-quietSince>700) || now-t0>4000 || (!spoke && now-t0>3000) || stopNow){res();return}
+      requestAnimationFrame(tick)};
+    tick();});
+  stopNow=false;
+  await new Promise(r=>{rec.onstop=r; rec.stop()});
+  ctx.close();
+  const blob=new Blob(chunks,{type:rec.mimeType});
+  return {blob,spoke};
+}
+let stopNow=false;
+async function toMono16k(blob){
+  const ab=await blob.arrayBuffer();
+  const ac=new (window.AudioContext||window.webkitAudioContext)();
+  const dec=await ac.decodeAudioData(ab); ac.close();
+  const off=new OfflineAudioContext(1,Math.ceil(dec.duration*16000),16000);
+  const s=off.createBufferSource(); s.buffer=dec; s.connect(off.destination); s.start();
+  const r=await off.startRendering(); return r.getChannelData(0);
+}
+
+// ---- scoring: sound-alike match, kind to accents ----
+const NUM={one:'1',two:'2',three:'3',four:'4',five:'5',six:'6',seven:'7',eight:'8',nine:'9',ten:'10',eleven:'11',twelve:'12',thirteen:'13',fourteen:'14',fifteen:'15',sixteen:'16',seventeen:'17',eighteen:'18',nineteen:'19',twenty:'20'};
+const norm=s=>s.toLowerCase().replace(/[’']/g,'').replace(/okay/g,'ok').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim().split(' ').map(w=>NUM[w]||w).join(' ');
+function key(s){ // rough "how it sounds" key: same key = sounds the same (write/right, aunt/ant, pear/pair)
+  s=norm(s).replace(/ /g,'');
+  s=s.replace(/^wr/,'r').replace(/^kn/,'n').replace(/ph/g,'f').replace(/gh/g,'').replace(/tch/g,'ch').replace(/dg/g,'j')
+     .replace(/ck/g,'k').replace(/c(?=[eiy])/g,'s').replace(/c/g,'k').replace(/q/g,'k').replace(/x/g,'ks').replace(/z/g,'s');
+  const first=s[0]||''; s=first+s.slice(1).replace(/[aeiouyhw]/g,'');
+  return s.replace(/(.)\1+/g,'$1');
+}
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;
+  for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length];}
+const sim=(a,b)=>1-lev(a,b)/Math.max(a.length,b.length,1);
+function score(heard,target){
+  const H=norm(heard), Tn=norm(target); if(!H) return 0;
+  const hw=H.split(' '), n=Tn.split(' ').length; let best=0;
+  for(let s=0;s<hw.length;s++) for(let L=Math.max(1,n-1);L<=n+1;L++){ const part=hw.slice(s,s+L).join(' '); if(!part) continue;
+    if(part===Tn||key(part)===key(Tn)) return 3;
+    best=Math.max(best, sim(key(part),key(Tn)), sim(part.replace(/ /g,''),Tn.replace(/ /g,'')));}
+  return best>=0.6?2:1;
+}
+const MSG={3:['Great job!','You said it!','Perfect!'],2:['Almost! Listen and try again.','So close! Try once more.'],1:['Listen again, then try.','Let’s try again together.']};
+function showResult(st,heard){
+  $('stars').innerHTML=[1,2,3].map(k=>`<span class="${k<=st?'':'off'}">★</span>`).join('');
+  const m=MSG[st]; $('msg').textContent=m[Math.floor(Math.random()*m.length)];
+  $('heard').textContent=heard?`I heard: “${heard.trim().replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9?!.]+$/g,'')}”`:'';
+}
+async function check(f32){
+  window.__last=null; const target=T.words[i]; const {enc,heard,lg}=await listenTo(f32);
+  let st=score(heard,target);
+  if(st<3){ const gap=lg-await targetLogProb(enc,target); st=gap<=2?3:gap<=4.5?2:1; window.__last={heard,gap:+gap.toFixed(2)} }
+  return {heard,st};
+}
+window.__test=async(url,target)=>{ // test with a sample clip: __test('../a/animals/gia/w01.mp3','dog')
+  const b=await (await fetch(url)).blob(); const f=await toMono16k(b); const t0=performance.now();
+  const keep=T.words[i]; if(target){T.words[i]=target} const r=await check(f); T.words[i]=keep;
+  return {...r, ms:Math.round(performance.now()-t0), detail:window.__last||null};
+};
+$('mic').onclick=async()=>{
+  if(busy){stopNow=true;return}
+  busy=true; $('mic').classList.add('rec'); $('micl').textContent='Listening…'; clearResult(); $('msg').textContent='Say the word now.';
+  try{
+    const {blob,spoke}=await record();
+    $('mic').classList.remove('rec'); $('micl').textContent='Checking…'; $('mic').disabled=true;
+    if(lastBlobUrl) URL.revokeObjectURL(lastBlobUrl); lastBlobUrl=URL.createObjectURL(blob); $('me').hidden=false;
+    if(!spoke){ $('msg').textContent='I didn’t hear you. Speak a little louder.'; }
+    else { const {heard,st}=await check(await toMono16k(blob)); showResult(st,st<3?heard:''); }
+  }catch(e){ $('msg').textContent=/Permission|NotAllowed/i.test(e.name+e.message)?'Please allow the microphone, then try again.':'Something went wrong. Try again.'; console.error(e); }
+  busy=false; $('mic').classList.remove('rec'); $('mic').disabled=false; $('micl').textContent='Say it!';
+};
+$('me').onclick=()=>{ if(lastBlobUrl){audio.src=lastBlobUrl; audio.play().catch(()=>{})} };
+if(!navigator.mediaDevices||!window.MediaRecorder){ $('loadt').textContent='This browser can’t use the microphone. Try Chrome or Safari.'; }
+await loadTopic();
+loadModel().catch(e=>{ $('loadt').textContent='The listening helper could not load. Check the internet and reload.'; console.error(e); });
+</script>
+</body>
+</html>
