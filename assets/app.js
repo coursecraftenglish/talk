@@ -1,12 +1,12 @@
 (function(){
-  var T=window.TOPIC, B=window.BASE||"";
+  var T=window.TOPIC, B=window.BASE||"", IB=B+"a/"+(window.THEME?window.THEME+"/":"");
   var slow=false, el=null, playing=null;
   var VOICES=["gia","mark"], voice=T.voice||"gia";
   try{var sv=localStorage.getItem("tpd-voice");if(VOICES.indexOf(sv)>=0)voice=sv;}catch(e){}
   function other(){return voice==="gia"?"mark":"gia";}
   function wid(i){return "w"+String(i+1).padStart(2,"0");}
   function au(id,v){return B+"a/"+T.slug+"/"+(v||voice)+"/"+id+(slow?"_slow":"")+".mp3";}
-  function pic(i){return B+"a/"+T.slug+"/"+wid(i)+".webp";}
+  function pic(i){return IB+T.slug+"/"+wid(i)+".webp";}
   function mark(id,on){document.querySelectorAll('[data-say="'+id+'"]').forEach(function(n){n.classList.toggle("playing",on);});}
   function say(id,v){
     if(playing)mark(playing,false);
@@ -27,7 +27,7 @@
   var sayBox=document.getElementById("say");
   T.phrases.forEach(function(p,j){
     var id="p"+(j+1);
-    var b=h("button",{type:"button","class":"td-phrase","data-say":id},[h("img",{src:B+"a/cast/"+T.phraseCast[j]+".webp",alt:"",width:"52",height:"52"}),h("span",{text:p})]);
+    var b=h("button",{type:"button","class":"td-phrase","data-say":id},[h("img",{src:IB+"cast/"+T.phraseCast[j]+".webp",alt:"",width:"52",height:"52"}),h("span",{text:p})]);
     b.addEventListener("click",function(){say(id);});sayBox.appendChild(b);
   });
   // speed
@@ -77,7 +77,7 @@
       c.addEventListener("click",play);stage.appendChild(c);
     }else if(mode==="say"){
       var id="p"+(pi+1);
-      var c2=h("button",{type:"button","class":"td-card td-pcard","data-say":id},[h("img",{src:B+"a/cast/"+T.phraseCast[pi]+".webp",alt:""}),h("span",{"class":"td-pbig",text:T.phrases[pi]}),h("span",{"class":"td-ptip",text:"Listen. Then say it together."})]);
+      var c2=h("button",{type:"button","class":"td-card td-pcard","data-say":id},[h("img",{src:IB+"cast/"+T.phraseCast[pi]+".webp",alt:""}),h("span",{"class":"td-pbig",text:T.phrases[pi]}),h("span",{"class":"td-ptip",text:"Listen. Then say it together."})]);
       c2.addEventListener("click",play);stage.appendChild(c2);
     }else{
       var row=T.listen[pi];
@@ -109,5 +109,5 @@
     var wrap=h("div",{"class":"td-h2row"});h2.parentNode.insertBefore(wrap,h2);wrap.appendChild(h2);wrap.appendChild(b);
   });
   // My Turn! (pronunciation practice) loads its own module
-  var mt=document.createElement("script");mt.type="module";mt.src=B+"assets/myturn.js?v=6";document.body.appendChild(mt);
+  var mt=document.createElement("script");mt.type="module";mt.src=B+"assets/myturn.js?v=7";document.body.appendChild(mt);
 })();

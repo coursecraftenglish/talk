@@ -1,10 +1,10 @@
 // My Turn! — pronunciation practice for words and sentences. Runs on the device; no audio leaves it.
-const T = window.TOPIC, B = window.BASE || "";
+const T = window.TOPIC, B = window.BASE || "", IB = `${B}a/${window.THEME ? window.THEME + "/" : ""}`;
 const wid = (k) => "w" + String(k + 1).padStart(2, "0");
 // Practice sets. Topic pages build them from TOPIC; other pages (Start Here) pass window.MT_SETS.
 const SETS = window.MT_SETS || (T ? [
-  { key: "words", label: "Words", kind: "word", items: T.words.map((w, k) => ({ text: w, img: `${B}a/${T.slug}/${wid(k)}.webp`, audio: (v) => `${B}a/${T.slug}/${v}/${wid(k)}.mp3` })) },
-  ...(T.phrases && T.phrases.length ? [{ key: "say", label: "Sentences", kind: "sentence", section: 'section[aria-label="Say it"]', items: T.phrases.map((p, k) => ({ text: p, img: `${B}a/cast/${T.phraseCast[k]}.webp`, round: true, audio: (v) => `${B}a/${T.slug}/${v}/p${k + 1}.mp3` })) }] : []),
+  { key: "words", label: "Words", kind: "word", items: T.words.map((w, k) => ({ text: w, img: `${IB}${T.slug}/${wid(k)}.webp`, audio: (v) => `${B}a/${T.slug}/${v}/${wid(k)}.mp3` })) },
+  ...(T.phrases && T.phrases.length ? [{ key: "say", label: "Sentences", kind: "sentence", section: 'section[aria-label="Say it"]', items: T.phrases.map((p, k) => ({ text: p, img: `${IB}cast/${T.phraseCast[k]}.webp`, round: true, audio: (v) => `${B}a/${T.slug}/${v}/p${k + 1}.mp3` })) }] : []),
 ] : null);
 
 function init() {
