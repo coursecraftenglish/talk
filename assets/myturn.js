@@ -1,27 +1,34 @@
 // My Turn! — pronunciation practice for words and sentences. Runs on the device; no audio leaves it.
 const T = window.TOPIC, B = window.BASE || "";
+const wid = (k) => "w" + String(k + 1).padStart(2, "0");
+// Practice sets. Topic pages build them from TOPIC; other pages (Start Here) pass window.MT_SETS.
+const SETS = window.MT_SETS || (T ? [
+  { key: "words", label: "Words", kind: "word", items: T.words.map((w, k) => ({ text: w, img: `${B}a/${T.slug}/${wid(k)}.webp`, audio: (v) => `${B}a/${T.slug}/${v}/${wid(k)}.mp3` })) },
+  ...(T.phrases && T.phrases.length ? [{ key: "say", label: "Sentences", kind: "sentence", section: 'section[aria-label="Say it"]', items: T.phrases.map((p, k) => ({ text: p, img: `${B}a/cast/${T.phraseCast[k]}.webp`, round: true, audio: (v) => `${B}a/${T.slug}/${v}/p${k + 1}.mp3` })) }] : []),
+] : null);
 
 function init() {
   const mic = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2z"/></svg>';
   const mkBtn = (cls, label, mode) => { const b = document.createElement("button"); b.type = "button"; b.className = "td-proj td-mt " + cls; b.innerHTML = mic + label; b.addEventListener("click", () => open(mode)); return b; };
   const ctr = document.querySelector(".td-controls"); const pj = document.getElementById("projbtn");
-  if (ctr) ctr.insertBefore(mkBtn("", "My Turn", "words"), pj ? pj.nextSibling : null);
-  const sec = document.querySelector('section[aria-label="Say it"]');
-  if (sec && T.phrases && T.phrases.length) {
-    const b = mkBtn("td-proj-sm", "My Turn", "say");
+  if (ctr) ctr.insertBefore(mkBtn("", "My Turn", SETS[0].key), pj ? pj.nextSibling : null);
+  SETS.forEach((st) => {
+    const sec = st.section && document.querySelector(st.section); if (!sec) return;
+    const b = mkBtn("td-proj-sm", "My Turn", st.key);
     const pjs = sec.querySelector(".td-h2row .td-proj");
     if (pjs) { const g = document.createElement("div"); g.className = "td-h2btns"; pjs.replaceWith(g); g.appendChild(b); g.appendChild(pjs); }
     else sec.querySelector(".td-h2").after(b);
-  }
+  });
   buildOverlay();
 }
 
-let ov, mode = "words", i = 0, busy = false, stopNow = false, lastUrl = null, stream = null;
+let ov, mode = SETS ? SETS[0].key : "words", i = 0, busy = false, stopNow = false, lastUrl = null, stream = null;
 const $ = (s) => ov.querySelector(s);
-const wid = (k) => "w" + String(k + 1).padStart(2, "0");
-const voice = () => { try { return localStorage.getItem("tpd-voice") || T.voice || "gia"; } catch (e) { return T.voice || "gia"; } };
-const list = () => (mode === "words" ? T.words : T.phrases);
-const audioId = () => (mode === "words" ? wid(i) : "p" + (i + 1));
+const dv = (T && T.voice) || "gia";
+const voice = () => { try { return localStorage.getItem("tpd-voice") || dv; } catch (e) { return dv; } };
+const S = () => SETS.find((x) => x.key === mode) || SETS[0];
+const isWord = () => S().kind === "word";
+const list = () => S().items.map((x) => x.text);
 const player = new Audio();
 
 function buildOverlay() {
@@ -29,7 +36,7 @@ function buildOverlay() {
   ov.className = "td-overlay mt-ov"; ov.hidden = true; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "My Turn");
   ov.innerHTML = `
   <button type="button" class="td-close">Close</button>
-  <div class="td-ptabs" role="tablist"><button type="button" class="td-ptab" data-m="words">Words</button>${T.phrases && T.phrases.length ? '<button type="button" class="td-ptab" data-m="say">Sentences</button>' : ""}</div>
+  <div class="td-ptabs" role="tablist" ${SETS.length < 2 ? "hidden" : ""}>${SETS.map((x) => `<button type="button" class="td-ptab" data-m="${x.key}">${x.label}</button>`).join("")}</div>
   <div class="mt-card">
     <div class="mt-count"></div>
     <img class="mt-pic" alt="">
@@ -57,9 +64,8 @@ function open(m) { mode = m; i = 0; ov.hidden = false; document.body.style.overf
 function close() { ov.hidden = true; document.body.style.overflow = ""; player.pause(); stopNow = true; }
 function show() {
   ov.querySelectorAll("[data-m]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.m === mode)));
-  const words = mode === "words";
-  $(".mt-pic").src = words ? `${B}a/${T.slug}/${wid(i)}.webp` : `${B}a/cast/${T.phraseCast[i]}.webp`;
-  $(".mt-pic").classList.toggle("round", !words);
+  const words = isWord(), it = S().items[i];
+  $(".mt-pic").src = it.img; $(".mt-pic").classList.toggle("round", !!it.round);
   $(".mt-word").textContent = list()[i]; $(".mt-word").classList.toggle("sent", !words);
   ov.querySelector(".td-count").textContent = $(".mt-count").textContent = `${i + 1} / ${list().length}`;
   clearResult();
@@ -67,9 +73,9 @@ function show() {
 function clearResult() {
   if (ov && list()) $(".mt-word").textContent = list()[i];
   $(".mt-stars").innerHTML = ""; $(".mt-heard").textContent = ""; $(".mt-me").hidden = true;
-  $(".mt-msg").textContent = model ? `Tap 🔊, then tap the green button and say the ${mode === "words" ? "word" : "sentence"}.` : "";
+  $(".mt-msg").textContent = model ? `Tap 🔊, then tap the green button and say the ${isWord() ? "word" : "sentence"}.` : "";
 }
-function listen() { player.src = `${B}a/${T.slug}/${voice()}/${audioId()}.mp3`; player.play().catch(() => {}); }
+function listen() { player.src = S().items[i].audio(voice()); player.play().catch(() => {}); }
 
 // ---- speech model (Whisper tiny, in the browser) ----
 const M = "Xenova/whisper-tiny.en", SOT = [50257, 50362], EOT = 50256;
@@ -103,7 +109,7 @@ async function hear(f32) {
 }
 async function targetLP(enc, target) {
   const cap = target[0].toUpperCase() + target.slice(1);
-  const vars = mode === "words" ? [" " + cap + ".", " " + target, " " + cap] : [" " + target, " " + target.replace(/[.!?]+$/, "")];
+  const vars = isWord() ? [" " + cap + ".", " " + target, " " + cap] : [" " + target, " " + target.replace(/[.!?]+$/, "")];
   let best = -1e9; for (const v of vars) best = Math.max(best, await seqLP(enc, SOT.concat(tok.encode(v, { add_special_tokens: false }), [EOT])));
   return best;
 }
@@ -125,7 +131,7 @@ function lev(a, b) { const d = Array.from({ length: a.length + 1 }, (_, i) => [i
 const sim = (a, b) => 1 - lev(a, b) / Math.max(a.length, b.length, 1);
 function textScore(heard, target) {
   const H = norm(heard), Tn = norm(target); if (!H) return 0;
-  if (mode === "say") { const hw = H.split(" "), tw = Tn.split(" "); const s = 1 - lev(hw, tw) / Math.max(hw.length, tw.length); const ks = sim(key(H), key(Tn)); return s >= 0.85 || ks >= 0.9 ? 3 : 1; }
+  if (!isWord()) { const hw = H.split(" "), tw = Tn.split(" "); const s = 1 - lev(hw, tw) / Math.max(hw.length, tw.length); const ks = sim(key(H), key(Tn)); return s >= 0.85 || ks >= 0.9 ? 3 : 1; }
   const hw = H.split(" "), n = Tn.split(" ").length;
   for (let s = 0; s < hw.length; s++) for (let L = Math.max(1, n - 1); L <= n + 1; L++) { const part = hw.slice(s, s + L).join(" "); if (part && (part === Tn || key(part) === key(Tn))) return 3; }
   return 1;
@@ -133,7 +139,7 @@ function textScore(heard, target) {
 async function check(f32) {
   const target = list()[i]; const { enc, heard, lg } = await hear(f32);
   let st, gap = null, flags = [];
-  if (mode === "words") {
+  if (isWord()) {
     st = textScore(heard, target);
     if (st < 3) { gap = lg - (await targetLP(enc, target)); st = gap <= 2 ? 3 : gap <= 4.5 ? 2 : 1; }
   } else {
@@ -147,7 +153,7 @@ async function check(f32) {
   window.__mtLast = { heard, gap };
   return { heard, st, flags };
 }
-window.__mtTest = async (url, m, idx, text) => { mode = m; i = idx; const keep = list()[idx]; if (text) list()[idx] = text; const f = await toMono16k(await (await fetch(url)).blob()); const t0 = performance.now(); const r = await check(f); list()[idx] = keep; return { ...r, gap: window.__mtLast.gap, words: mode === "say" ? window.__mtWords : null, ms: Math.round(performance.now() - t0) }; };
+window.__mtTest = async (url, m, idx, text) => { mode = m; i = idx; const it = S().items[idx], keep = it.text; if (text) it.text = text; const f = await toMono16k(await (await fetch(url)).blob()); const t0 = performance.now(); const r = await check(f); it.text = keep; return { ...r, gap: window.__mtLast.gap, words: isWord() ? null : window.__mtWords, ms: Math.round(performance.now() - t0) }; };
 
 // ---- recording with auto-stop ----
 async function record() {
@@ -156,7 +162,7 @@ async function record() {
   const an = ctx.createAnalyser(); an.fftSize = 1024; ctx.createMediaStreamSource(stream).connect(an);
   const rec = new MediaRecorder(stream); const chunks = []; rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   const buf = new Float32Array(an.fftSize); let spoke = false, quiet = performance.now(); const t0 = performance.now();
-  const maxT = mode === "words" ? 4000 : 7000, gapT = mode === "words" ? 700 : 1000;
+  const maxT = isWord() ? 4000 : 7000, gapT = isWord() ? 700 : 1000;
   rec.start();
   await new Promise((res) => { const tick = () => { an.getFloatTimeDomainData(buf); let s = 0; for (const v of buf) s += v * v; const rms = Math.sqrt(s / buf.length), now = performance.now(); if (rms > 0.02) { spoke = true; quiet = now; } if ((spoke && now - quiet > gapT) || now - t0 > maxT || (!spoke && now - t0 > 3500) || stopNow) return res(); requestAnimationFrame(tick); }; tick(); });
   stopNow = false;
@@ -176,7 +182,7 @@ const MSG = { 3: ["Great job!", "You said it!", "Perfect!"], 2: ["Almost! Listen
 async function onMic() {
   const btn = $(".mt-mic"), lab = $(".mt-micl");
   if (busy) { stopNow = true; return; }
-  busy = true; btn.classList.add("rec"); lab.textContent = "Listening…"; clearResult(); $(".mt-msg").textContent = mode === "words" ? "Say the word now." : "Say the sentence now.";
+  busy = true; btn.classList.add("rec"); lab.textContent = "Listening…"; clearResult(); $(".mt-msg").textContent = isWord() ? "Say the word now." : "Say the sentence now.";
   try {
     const { blob, spoke } = await record();
     btn.classList.remove("rec"); lab.textContent = "Checking…"; btn.disabled = true;
@@ -186,12 +192,12 @@ async function onMic() {
       const { heard, st, flags } = await check(await toMono16k(blob));
       $(".mt-stars").innerHTML = [1, 2, 3].map((k) => `<span class="${k <= st ? "" : "off"}">★</span>`).join("");
       const m = MSG[st]; $(".mt-msg").textContent = m[Math.floor(Math.random() * m.length)];
-      if (mode === "say" && flags.length) { const w = flags.length === 1 ? "the word" : "the words"; $(".mt-msg").textContent = st > 1 ? `Almost! Check ${w} in red.` : `Listen again. Check ${w} in red.`; }
-      if (mode === "say" && flags.length) $(".mt-word").innerHTML = list()[i].split(" ").map((w, k) => flags.includes(k) ? `<span class="mt-bad">${esc(w)}</span>` : esc(w)).join(" ");
+      if (!isWord() && flags.length) { const w = flags.length === 1 ? "the word" : "the words"; $(".mt-msg").textContent = st > 1 ? `Almost! Check ${w} in red.` : `Listen again. Check ${w} in red.`; }
+      if (!isWord() && flags.length) $(".mt-word").innerHTML = list()[i].split(" ").map((w, k) => flags.includes(k) ? `<span class="mt-bad">${esc(w)}</span>` : esc(w)).join(" ");
       $(".mt-heard").textContent = st < 3 && heard.trim() ? `I heard: “${heard.trim()}”` : "";
     }
   } catch (e) { console.error(e); $(".mt-msg").textContent = /Permission|NotAllowed/i.test(e.name + e.message) ? "Please allow the microphone, then try again." : "Something went wrong. Try again."; }
   busy = false; btn.classList.remove("rec"); btn.disabled = false; lab.textContent = "My turn!";
 }
 
-if (T) init();
+if (SETS && SETS.length) init();

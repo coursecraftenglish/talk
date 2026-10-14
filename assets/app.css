@@ -126,3 +126,7 @@
 @media (min-width:900px){.mt-ov .td-count{display:none}.mt-count{display:block}}
 
 .mt-bad{color:#D9534F;text-decoration:underline wavy #D9534F;text-underline-offset:6px}
+.td-ptabs[hidden]{display:none}
+.td-overlay .td-scard img{width:min(46vh,80vw);border-radius:18px}
+.td-overlay .td-lcard{width:min(70vh,90vw);aspect-ratio:1.3;justify-content:center}
+.td-lbig{font-size:min(38vh,34vw);font-weight:700;color:var(--navy);line-height:1}

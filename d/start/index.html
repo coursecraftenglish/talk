@@ -14,4 +14,4 @@ document.querySelectorAll("[data-say]").forEach(function(b){b.addEventListener("
 document.querySelectorAll("[data-speed]").forEach(function(b){b.addEventListener("click",function(){slow=b.getAttribute("data-speed")==="slow";document.querySelectorAll("[data-speed]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b));});});});
 function setV(v){voice=v;try{localStorage.setItem("tpd-voice",v);}catch(e){}document.querySelectorAll("[data-voice]").forEach(function(x){x.setAttribute("aria-pressed",String(x.getAttribute("data-voice")===v));});}
 document.querySelectorAll("[data-voice]").forEach(function(b){b.addEventListener("click",function(){setV(b.getAttribute("data-voice"));});});setV(voice);
-})();</script></body></html>
+})();</script><script src="../../assets/start.js?v=1"></script></body></html>

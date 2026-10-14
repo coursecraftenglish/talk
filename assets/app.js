@@ -109,5 +109,5 @@
     var wrap=h("div",{"class":"td-h2row"});h2.parentNode.insertBefore(wrap,h2);wrap.appendChild(h2);wrap.appendChild(b);
   });
   // My Turn! (pronunciation practice) loads its own module
-  var mt=document.createElement("script");mt.type="module";mt.src=B+"assets/myturn.js?v=4";document.body.appendChild(mt);
+  var mt=document.createElement("script");mt.type="module";mt.src=B+"assets/myturn.js?v=5";document.body.appendChild(mt);
 })();
