@@ -124,3 +124,5 @@
 
 .mt-count{display:none;align-self:flex-end;font-weight:700;color:var(--grey);font-size:16px;margin-bottom:-1vh}
 @media (min-width:900px){.mt-ov .td-count{display:none}.mt-count{display:block}}
+
+.mt-bad{color:#D9534F;text-decoration:underline wavy #D9534F;text-underline-offset:6px}

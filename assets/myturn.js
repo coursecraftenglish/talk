@@ -65,6 +65,7 @@ function show() {
   clearResult();
 }
 function clearResult() {
+  if (ov && list()) $(".mt-word").textContent = list()[i];
   $(".mt-stars").innerHTML = ""; $(".mt-heard").textContent = ""; $(".mt-me").hidden = true;
   $(".mt-msg").textContent = model ? `Tap 🔊, then tap the green button and say the ${mode === "words" ? "word" : "sentence"}.` : "";
 }
@@ -107,6 +108,15 @@ async function targetLP(enc, target) {
   return best;
 }
 
+// per-word fit: the lowest token log-probability inside each word of the target sentence
+async function wordScores(enc, text) {
+  const t = tok.encode(" " + text, { add_special_tokens: false }); const ids = SOT.concat(t, [EOT]);
+  const L = await dec(enc, ids), V = L.dims[2], d = L.data; const words = [];
+  for (let k = 0; k < t.length; k++) { const lp = lsm(d, (SOT.length - 1 + k) * V, V, t[k]); const piece = tok.decode([t[k]]);
+    if (piece.startsWith(" ") || !words.length) words.push({ w: piece.trim(), lp }); else { const w = words[words.length - 1]; w.w += piece; w.lp = Math.min(w.lp, lp); } }
+  return words;
+}
+
 // ---- matching that forgives sound-alikes (write/right, aunt/ant) ----
 const NUM = { one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", ten: "10", eleven: "11", twelve: "12", thirteen: "13", fourteen: "14", fifteen: "15", sixteen: "16", seventeen: "17", eighteen: "18", nineteen: "19", twenty: "20" };
 const norm = (s) => s.toLowerCase().replace(/[’']/g, "").replace(/okay/g, "ok").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim().split(" ").map((w) => NUM[w] || w).join(" ");
@@ -122,19 +132,22 @@ function textScore(heard, target) {
 }
 async function check(f32) {
   const target = list()[i]; const { enc, heard, lg } = await hear(f32);
-  let st = textScore(heard, target), gap = null;
-  if (st < 3) {
-    gap = lg - (await targetLP(enc, target));
-    if (mode === "words") st = gap <= 2 ? 3 : gap <= 4.5 ? 2 : 1;
-    else { // sentences: the gap is averaged over more words, so the bands are tighter; partly right sentences get 2 stars
-      const hw = norm(heard).split(" ").filter(Boolean), tw = norm(target).split(" "); const ws = hw.length ? 1 - lev(hw, tw) / Math.max(hw.length, tw.length) : 0;
-      st = gap <= 1.5 ? 3 : gap <= 2.5 || ws >= 0.5 ? 2 : 1;
-    }
+  let st, gap = null, flags = [];
+  if (mode === "words") {
+    st = textScore(heard, target);
+    if (st < 3) { gap = lg - (await targetLP(enc, target)); st = gap <= 2 ? 3 : gap <= 4.5 ? 2 : 1; }
+  } else {
+    // sentences: every word must fit. A swapped word scores far below zero, so silly sentences fail.
+    const ws = await wordScores(enc, target);
+    flags = ws.map((x, k) => (x.lp < -4 ? k : -1)).filter((k) => k >= 0);
+    const bad = ws.filter((x) => x.lp < -8).length, allow = ws.length >= 7 ? 2 : 1;
+    st = flags.length === 0 ? 3 : flags.length <= allow && bad <= 1 ? 2 : 1;
+    window.__mtWords = ws.map((x) => [x.w, +x.lp.toFixed(2)]);
   }
   window.__mtLast = { heard, gap };
-  return { heard, st };
+  return { heard, st, flags };
 }
-window.__mtTest = async (url, m, idx) => { mode = m; i = idx; const f = await toMono16k(await (await fetch(url)).blob()); const t0 = performance.now(); const r = await check(f); return { ...r, gap: window.__mtLast.gap, ms: Math.round(performance.now() - t0) }; };
+window.__mtTest = async (url, m, idx, text) => { mode = m; i = idx; const keep = list()[idx]; if (text) list()[idx] = text; const f = await toMono16k(await (await fetch(url)).blob()); const t0 = performance.now(); const r = await check(f); list()[idx] = keep; return { ...r, gap: window.__mtLast.gap, words: mode === "say" ? window.__mtWords : null, ms: Math.round(performance.now() - t0) }; };
 
 // ---- recording with auto-stop ----
 async function record() {
@@ -158,6 +171,7 @@ async function toMono16k(blob) {
   const s = off.createBufferSource(); s.buffer = d; s.connect(off.destination); s.start();
   return (await off.startRendering()).getChannelData(0);
 }
+const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const MSG = { 3: ["Great job!", "You said it!", "Perfect!"], 2: ["Almost! Listen and try again.", "So close! Try once more."], 1: ["Listen again, then try.", "Let’s try again together."] };
 async function onMic() {
   const btn = $(".mt-mic"), lab = $(".mt-micl");
@@ -169,9 +183,11 @@ async function onMic() {
     if (lastUrl) URL.revokeObjectURL(lastUrl); lastUrl = URL.createObjectURL(blob); $(".mt-me").hidden = false;
     if (!spoke) $(".mt-msg").textContent = "I didn’t hear you. Speak a little louder.";
     else {
-      const { heard, st } = await check(await toMono16k(blob));
+      const { heard, st, flags } = await check(await toMono16k(blob));
       $(".mt-stars").innerHTML = [1, 2, 3].map((k) => `<span class="${k <= st ? "" : "off"}">★</span>`).join("");
       const m = MSG[st]; $(".mt-msg").textContent = m[Math.floor(Math.random() * m.length)];
+      if (mode === "say" && flags.length && st > 1) { $(".mt-msg").textContent = flags.length === 1 ? "Almost! Check the word in red." : "Almost! Check the words in red."; }
+      if (mode === "say" && flags.length) $(".mt-word").innerHTML = list()[i].split(" ").map((w, k) => flags.includes(k) ? `<span class="mt-bad">${esc(w)}</span>` : esc(w)).join(" ");
       $(".mt-heard").textContent = st < 3 && heard.trim() ? `I heard: “${heard.trim()}”` : "";
     }
   } catch (e) { console.error(e); $(".mt-msg").textContent = /Permission|NotAllowed/i.test(e.name + e.message) ? "Please allow the microphone, then try again." : "Something went wrong. Try again."; }
