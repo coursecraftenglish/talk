@@ -114,6 +114,19 @@ async function targetLP(enc, target) {
   return best;
 }
 
+// single word: lowest log-probability among the word's pieces (punctuation ignored), best of a few spellings
+async function wordFit(enc, word) {
+  const cap = word[0].toUpperCase() + word.slice(1); const vars = [" " + cap + ".", " " + word];
+  const n = NUM[word.toLowerCase()]; if (n) vars.push(" " + n + ".");
+  let best = -1e9;
+  for (const v of vars) {
+    const t = tok.encode(v, { add_special_tokens: false }); const L = await dec(enc, SOT.concat(t, [EOT])), V = L.dims[2], d = L.data; let mn = 0;
+    for (let k = 0; k < t.length; k++) { if (/^[.!?,]$/.test(tok.decode([t[k]]).trim())) continue; mn = Math.min(mn, lsm(d, (SOT.length - 1 + k) * V, V, t[k])); }
+    best = Math.max(best, mn);
+  }
+  return best;
+}
+
 // per-word fit: the lowest token log-probability inside each word of the target sentence
 async function wordScores(enc, text) {
   const t = tok.encode(" " + text, { add_special_tokens: false }); const ids = SOT.concat(t, [EOT]);
@@ -140,8 +153,9 @@ async function check(f32) {
   const target = list()[i]; const { enc, heard, lg } = await hear(f32);
   let st, gap = null, flags = [];
   if (isWord()) {
-    st = textScore(heard, target);
-    if (st < 3) { gap = lg - (await targetLP(enc, target)); st = gap <= 2 ? 3 : gap <= 4.5 ? 2 : 1; }
+    // words: the weakest sound-piece of the word must fit. "hapish" for "happy" scores about -10; a clear "happy" about 0.
+    if (norm(heard) === norm(target)) st = 3;
+    else { gap = await wordFit(enc, target); st = gap >= -5 ? 3 : gap >= -9.5 ? 2 : 1; }
   } else {
     // sentences: every word must fit. A swapped word scores far below zero, so silly sentences fail.
     const ws = await wordScores(enc, target);

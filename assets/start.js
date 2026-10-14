@@ -47,5 +47,5 @@
 
   // My Turn for the first phrases (the letters are too short to check reliably)
   window.MT_SETS = [{ key: "phrases", label: "First Phrases", kind: "sentence", items: P.map(function (p) { return { text: p.text, img: p.img, audio: function (v) { return B + "a/start/" + v + "/" + p.id + ".mp3"; } }; }) }];
-  var mt = document.createElement("script"); mt.type = "module"; mt.src = B + "assets/myturn.js?v=5"; document.body.appendChild(mt);
+  var mt = document.createElement("script"); mt.type = "module"; mt.src = B + "assets/myturn.js?v=6"; document.body.appendChild(mt);
 })();
