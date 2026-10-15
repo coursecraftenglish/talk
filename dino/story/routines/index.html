@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arjun&#x27;s Morning · Dino Story · Talking Picture Dictionary</title><meta name="robots" content="noindex"><link rel="stylesheet" href="../../../assets/app.css">
+<style>
+.sp-stage{background:#fff;border:1px solid var(--line);border-radius:24px;padding:14px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:760px){.sp-stage{grid-template-columns:1fr}}
+.sp-pic{width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px;display:block;background:var(--sky)}
+.sp-who{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--teal);font-size:20px}.sp-who img{width:48px;height:48px;border-radius:50%;background:var(--sky)}
+.sp-say{font-size:clamp(28px,4.2vw,46px);font-weight:700;color:var(--navy);line-height:1.15;margin:10px 0 16px}
+.sp-say.playing{color:#E4572E}
+.sp-btns{display:flex;flex-wrap:wrap;gap:10px}
+.sp-btn{font:inherit;font-weight:700;font-size:18px;display:inline-flex;align-items:center;gap:8px;border:2px solid var(--navy);color:var(--navy);background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer}
+.sp-btn.big{background:var(--navy);color:#fff}.sp-btn:disabled{opacity:.35;cursor:default}
+.sp-nav{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:10px}
+.sp-dots{display:flex;gap:8px}.sp-dots button{width:16px;height:16px;border-radius:50%;border:2px solid var(--navy);background:#fff;padding:0;cursor:pointer}.sp-dots button[aria-current="true"]{background:var(--navy)}
+.sp-tip{color:var(--grey);font-size:15px;margin-top:12px}
+</style></head><body class="td"><div class="td-wrap">
+<header class="td-head"><div><span class="td-chip">🦖 Dinosaur Edition · Story · Topic 6</span><h1 class="td-title">Arjun&#x27;s Morning</h1>
+<p class="td-sub">Look, listen, and say it. Then try <b>My Turn</b>. Your voice stays on your device.</p></div><div class="td-controls"></div></header>
+<section class="sp-stage" aria-label="Story"><img class="sp-pic" alt=""><div><div class="sp-who"><img alt=""><span></span></div><div class="sp-say" aria-live="polite"></div>
+<div class="sp-btns"><button type="button" class="sp-btn big" id="listen">🔊 Listen</button><button type="button" class="sp-btn" id="all">▶ Play the whole story</button></div></div></section>
+<div class="sp-nav"><button type="button" class="sp-btn" id="prev">◀ Back</button><div class="sp-dots"></div><button type="button" class="sp-btn" id="next">Next ▶</button></div>
+<p class="sp-tip">Grown-ups: read the story together in the book, then color the pictures. Tap 🔊 to hear each line.</p>
+<p class="td-foot"><a href="../../d/routines/">Daily Routines words</a> · <a href="../../">Dinosaur Edition</a> · <a href="../../../">All topics</a> · © CourseCraft English</p></div>
+<script>window.STORY={"title": "Arjun's Morning", "lines": [{"who": "Arjun", "say": "I wake up at seven.", "img": "../../../a/dino/story/routines/p1.webp", "audio": "../../../a/dino/story/routines/s1.mp3", "face": "../../../a/dino/cast/arjun.webp"}, {"who": "Arjun", "say": "I brush my teeth.", "img": "../../../a/dino/story/routines/p2.webp", "audio": "../../../a/dino/story/routines/s2.mp3", "face": "../../../a/dino/cast/arjun.webp"}, {"who": "Arjun", "say": "I eat breakfast.", "img": "../../../a/dino/story/routines/p3.webp", "audio": "../../../a/dino/story/routines/s3.mp3", "face": "../../../a/dino/cast/arjun.webp"}, {"who": "Arjun", "say": "I go to school by bus.", "img": "../../../a/dino/story/routines/p4.webp", "audio": "../../../a/dino/story/routines/s4.mp3", "face": "../../../a/dino/cast/arjun.webp"}]};
+window.MT_SETS=[{key:"story",label:"Story",kind:"sentence",items:STORY.lines.map(function(l){return {text:l.say,img:l.img,audio:function(){return l.audio;}};})}];</script>
+<script>(function(){var L=STORY.lines,i=0,a=new Audio(),chain=false,$=function(s){return document.querySelector(s);};
+var dots=$(".sp-dots");L.forEach(function(_,k){var b=document.createElement("button");b.type="button";b.setAttribute("aria-label","Picture "+(k+1));b.onclick=function(){chain=false;go(k);};dots.appendChild(b);});
+function go(k){i=k;var l=L[i];$(".sp-pic").src=l.img;$(".sp-who span").textContent=l.who;var f=$(".sp-who img");f.hidden=!l.face;if(l.face)f.src=l.face;$(".sp-say").textContent=l.say;
+[].forEach.call(dots.children,function(d,j){d.setAttribute("aria-current",String(j===i));});$("#prev").disabled=i===0;$("#next").disabled=i===L.length-1;}
+function play(){a.pause();a.src=L[i].audio;$(".sp-say").classList.add("playing");a.play().catch(function(){$(".sp-say").classList.remove("playing");});}
+a.onended=function(){$(".sp-say").classList.remove("playing");if(chain&&i<L.length-1){setTimeout(function(){if(chain){go(i+1);play();}},700);}else chain=false;};
+$("#listen").onclick=function(){chain=false;play();};$("#all").onclick=function(){chain=true;go(0);play();};
+$("#prev").onclick=function(){chain=false;if(i>0)go(i-1);};$("#next").onclick=function(){chain=false;if(i<L.length-1)go(i+1);};
+document.addEventListener("keydown",function(e){if(document.querySelector(".mt-ov:not([hidden])"))return;if(e.key==="ArrowRight")$("#next").click();if(e.key==="ArrowLeft")$("#prev").click();if(e.key===" "){e.preventDefault();play();}});
+go(0);})();</script>
+<script type="module" src="../../../assets/myturn.js?v=7"></script></body></html>
