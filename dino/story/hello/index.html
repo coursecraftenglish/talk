@@ -15,7 +15,8 @@
 .sp-tip{color:var(--grey);font-size:15px;margin-top:12px}
 </style></head><body class="td"><div class="td-wrap">
 <header class="td-head"><div><span class="td-chip">🦖 Dinosaur Edition · Story · Topic 2</span><h1 class="td-title">A New Friend</h1>
-<p class="td-sub">Look, listen, and say it. Then try <b>My Turn</b>. Your voice stays on your device.</p></div><div class="td-controls"></div></header>
+<p class="td-sub">Look, listen, and say it. Then try <b>My Turn</b>. Your voice stays on your device.</p></div><div class="td-controls"><button type="button" class="td-proj" id="projbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Projector</button></div></header>
+<div class="td-overlay" id="proj" role="dialog" aria-label="Projector mode" hidden></div>
 <section class="sp-stage" aria-label="Story"><img class="sp-pic" alt=""><div><div class="sp-who"><img alt=""><span></span></div><div class="sp-say" aria-live="polite"></div>
 <div class="sp-btns"><button type="button" class="sp-btn big" id="listen">🔊 Listen</button><button type="button" class="sp-btn" id="all">▶ Play the whole story</button></div></div></section>
 <div class="sp-nav"><button type="button" class="sp-btn" id="prev">◀ Back</button><div class="sp-dots"></div><button type="button" class="sp-btn" id="next">Next ▶</button></div>
@@ -32,5 +33,26 @@ a.onended=function(){$(".sp-say").classList.remove("playing");if(chain&&i<L.leng
 $("#listen").onclick=function(){chain=false;play();};$("#all").onclick=function(){chain=true;go(0);play();};
 $("#prev").onclick=function(){chain=false;if(i>0)go(i-1);};$("#next").onclick=function(){chain=false;if(i<L.length-1)go(i+1);};
 document.addEventListener("keydown",function(e){if(document.querySelector(".mt-ov:not([hidden])"))return;if(e.key==="ArrowRight")$("#next").click();if(e.key==="ArrowLeft")$("#prev").click();if(e.key===" "){e.preventDefault();play();}});
+
+var ov=document.getElementById("proj"),pst=null;
+function mk(t,c,x){var n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n;}
+function pdraw(){ov.innerHTML="";var l=L[i];
+ var close=mk("button","td-close","Close");close.type="button";close.onclick=pclose;
+ var card=mk("button","td-card td-scard");card.type="button";if(a&&!a.paused)card.classList.add("playing");
+ var im=mk("img");im.src=l.img;im.alt="";im.style.width="min(34vh,76vw)";card.appendChild(im);
+ var who=mk("span","td-ptip",l.who);who.style.fontWeight="700";who.style.color="var(--teal)";who.style.fontSize="clamp(18px,3vh,30px)";card.appendChild(who);
+ var big=mk("span","td-big",l.say);big.style.fontSize="clamp(30px,6vh,72px)";card.appendChild(big);card.onclick=function(){chain=false;play();};
+ var stage=mk("div","td-stage");stage.appendChild(card);
+ var pv=mk("button","td-arrow","‹");pv.type="button";pv.setAttribute("aria-label","Previous");pv.disabled=i===0;pv.onclick=function(){chain=false;go(i-1);pdraw();play();};
+ var nx=mk("button","td-arrow","›");nx.type="button";nx.setAttribute("aria-label","Next");nx.disabled=i===L.length-1;nx.onclick=function(){chain=false;go(i+1);pdraw();play();};
+ var all=mk("button","sp-btn big","▶ Play the whole story");all.type="button";all.onclick=function(){chain=true;go(0);pdraw();play();};
+ var nav=mk("div","td-nav");nav.style.cssText="position:fixed;top:50%;left:0;right:0;transform:translateY(-50%);justify-content:space-between;padding:0 2vw;pointer-events:none";if(window.innerWidth<760){nav.style.top="auto";nav.style.bottom="2vh";nav.style.transform="none";}pv.style.pointerEvents=nx.style.pointerEvents="auto";nav.appendChild(pv);nav.appendChild(nx);
+ ov.appendChild(close);ov.appendChild(stage);ov.appendChild(all);ov.appendChild(nav);
+ var cnt=mk("div","td-pcount",(i+1)+" / "+L.length);cnt.style.cssText="font-weight:700;color:var(--grey);font-size:clamp(16px,2.4vh,24px)";ov.appendChild(cnt);}
+function popen(){ov.hidden=false;pdraw();document.body.style.overflow="hidden";}
+function pclose(){chain=false;a.pause();ov.hidden=true;document.body.style.overflow="";}
+document.getElementById("projbtn").onclick=function(){chain=false;popen();play();};
+var _go=go;go=function(k){_go(k);if(!ov.hidden)pdraw();};
+document.addEventListener("keydown",function(e){if(ov.hidden)return;if(e.key==="Escape")pclose();else if(e.key==="ArrowRight"&&i<L.length-1){e.stopImmediatePropagation();chain=false;go(i+1);play();}else if(e.key==="ArrowLeft"&&i>0){e.stopImmediatePropagation();chain=false;go(i-1);play();}else if(e.key===" "){e.preventDefault();e.stopImmediatePropagation();chain=false;play();}},true);
 go(0);})();</script>
 <script type="module" src="../../../assets/myturn.js?v=7"></script></body></html>

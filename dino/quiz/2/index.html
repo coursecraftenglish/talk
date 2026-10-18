@@ -1,0 +1,84 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Show What You Know! Topics 5–9 · Review quiz · Talking Picture Dictionary</title><meta name="robots" content="noindex"><link rel="stylesheet" href="../../../assets/app.css">
+<style>
+.qz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:16px}
+.qz-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:12px}
+.qz-card .qz-n{font-weight:700;color:var(--grey)}
+.qz-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;display:block;background:var(--sky)}
+.qz-opts{display:grid;gap:8px;margin-top:10px}
+.qz-opt{font:inherit;font-weight:700;font-size:20px;text-align:left;border:2px solid var(--navy);background:#fff;color:var(--navy);border-radius:14px;padding:10px 14px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.qz-opt b{width:30px;height:30px;border-radius:50%;background:var(--sky);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.qz-opt.right{background:#2E9E5B;border-color:#2E9E5B;color:#fff}.qz-opt.right b{background:#fff;color:#2E9E5B}
+.qz-opt.wrong{background:#D9534F;border-color:#D9534F;color:#fff}.qz-opt.wrong b{background:#fff;color:#D9534F}
+.qz-opt:disabled{cursor:default}
+.qz-score{font-weight:700;font-size:22px;color:var(--navy);margin-top:18px}
+.qz-btn{font:inherit;font-weight:700;font-size:18px;border:2px solid var(--navy);color:var(--navy);background:#fff;border-radius:14px;padding:10px 16px;cursor:pointer}
+.td-overlay .qz-slide{display:flex;flex-direction:column;align-items:center;gap:2vh;width:min(96vw,1100px)}
+.td-overlay .qz-slide img{height:36vh;width:36vh;max-width:70vw;max-height:70vw;object-fit:cover;border-radius:20px;background:#fff}
+.td-overlay .qz-big{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;width:100%}
+@media (max-width:760px){.td-overlay .qz-big{grid-template-columns:1fr}.td-overlay .qz-slide img{height:26vh;width:26vh}}
+.td-overlay .qz-bo{font:inherit;font-weight:700;font-size:clamp(24px,5vh,56px);border:3px solid var(--navy);background:#fff;color:var(--navy);border-radius:22px;padding:2vh 1vw;cursor:pointer;line-height:1.1}
+.td-overlay .qz-bo.right{background:#2E9E5B;border-color:#2E9E5B;color:#fff}.td-overlay .qz-bo.wrong{background:#D9534F;border-color:#D9534F;color:#fff}
+.td-overlay .qz-bo.dim{opacity:.35}
+.td-overlay .qz-top{font-weight:700;color:var(--grey);font-size:clamp(16px,2.6vh,26px)}
+.td-overlay .qz-end{font-size:clamp(34px,8vh,90px);font-weight:700;color:var(--navy);text-align:center}
+</style></head><body class="td"><div class="td-wrap">
+<header class="td-head"><div><span class="td-chip">🦖 Dinosaur Edition · Review · Topics 5–9</span><h1 class="td-title">Show What You Know!</h1>
+<p class="td-sub">Look at the picture. Tap the right word. You hear the word after you answer.</p></div>
+<div class="td-controls"><div class="td-voice" role="group" aria-label="Voice"><button type="button" data-voice="gia" aria-pressed="true">👩 Gia</button><button type="button" data-voice="mark" aria-pressed="false">👨 Mark</button></div>
+<button type="button" class="td-proj" id="projbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Projector</button></div></header>
+<section class="qz-grid" id="grid" aria-label="Questions"></section>
+<p class="qz-score" id="score" aria-live="polite"></p><p><button type="button" class="qz-btn" id="again">Try again</button></p>
+<p class="td-foot"><a href="../../../">All topics</a> · © CourseCraft English</p></div>
+<div class="td-overlay" id="proj" role="dialog" aria-label="Projector mode" hidden></div>
+<script>window.QUIZ=[{"pic": "../../../a/dino/actions-class/w06.webp", "slug": "actions-class", "n": "w06", "word": "line up", "opts": ["open your book", "read", "line up"], "ans": 2}, {"pic": "../../../a/dino/routines/w12.webp", "slug": "routines", "n": "w12", "word": "eat dinner", "opts": ["eat dinner", "wash face", "go to school"], "ans": 0}, {"pic": "../../../a/dino/actions/w15.webp", "slug": "actions", "n": "w15", "word": "pull", "opts": ["throw", "pull", "jump"], "ans": 1}, {"pic": "../../../a/dino/helpers/w15.webp", "slug": "helpers", "n": "w15", "word": "mechanic", "opts": ["mechanic", "mail carrier", "cashier"], "ans": 0}, {"pic": "../../../a/dino/health/w11.webp", "slug": "health", "n": "w11", "word": "scrape", "opts": ["scrape", "nosebleed", "thermometer"], "ans": 0}, {"pic": "../../../a/dino/actions-class/w02.webp", "slug": "actions-class", "n": "w02", "word": "stand up", "opts": ["close your book", "stand up", "clean up"], "ans": 1}, {"pic": "../../../a/dino/routines/w16.webp", "slug": "routines", "n": "w16", "word": "sleep", "opts": ["wash face", "watch TV", "sleep"], "ans": 2}, {"pic": "../../../a/dino/actions/w13.webp", "slug": "actions", "n": "w13", "word": "drink", "opts": ["run", "drink", "climb"], "ans": 1}];window.AUDIO_BASE="../../../a/";</script>
+<script>(function(){
+var Q=window.QUIZ,voice="gia",ans={},a=new Audio(),L="abc";
+try{var sv=localStorage.getItem("tpd-voice");if(sv==="gia"||sv==="mark")voice=sv;}catch(e){}
+function $(s){return document.querySelector(s);}
+function mk(t,c,x){var n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n;}
+function setVoice(v){voice=v;try{localStorage.setItem("tpd-voice",v);}catch(e){}document.querySelectorAll("[data-voice]").forEach(function(x){x.setAttribute("aria-pressed",String(x.getAttribute("data-voice")===v));});}
+document.querySelectorAll("[data-voice]").forEach(function(b){b.onclick=function(){setVoice(b.getAttribute("data-voice"));};});setVoice(voice);
+function say(k){a.pause();a.src=window.AUDIO_BASE+Q[k].slug+"/"+voice+"/"+Q[k].n+".mp3";a.play().catch(function(){});}
+function tally(){var n=0,c=0;for(var k in ans){n++;if(ans[k]===Q[k].ans)c++;}return [c,n];}
+function upd(){var t=tally();$("#score").textContent=t[1]?(t[0]+" of "+Q.length+" correct"+(t[1]===Q.length?(t[0]===Q.length?" — Great job!":" — Try again to get them all!"):"")):"";}
+// page grid
+var grid=$("#grid");
+Q.forEach(function(q,k){
+  var card=mk("div","qz-card");card.appendChild(mk("div","qz-n","Question "+(k+1)));
+  var im=mk("img");im.src=q.pic;im.alt="";im.width=360;im.height=360;im.loading="lazy";card.appendChild(im);
+  var box=mk("div","qz-opts");
+  q.opts.forEach(function(w,j){
+    var b=mk("button","qz-opt");b.type="button";b.appendChild(mk("b",null,L[j]));b.appendChild(document.createTextNode(w));
+    b.onclick=function(){if(ans[k]!=null)return;ans[k]=j;box.querySelectorAll(".qz-opt").forEach(function(x,m){x.disabled=true;if(m===q.ans)x.classList.add("right");else if(m===j)x.classList.add("wrong");});say(k);upd();};
+    box.appendChild(b);});
+  card.appendChild(box);grid.appendChild(card);});
+$("#again").onclick=function(){ans={};grid.innerHTML="";location.reload();};
+// projector: one question per slide, big pictures and words, running score
+var ov=$("#proj"),pi=0,pans={};
+function pt(){var n=0,c=0;for(var k in pans){n++;if(pans[k]===Q[k].ans)c++;}return [c,n];}
+function pdraw(){ov.innerHTML="";
+  var close=mk("button","td-close","Close");close.type="button";close.onclick=pclose;ov.appendChild(close);
+  var s=mk("div","qz-slide");
+  if(pi>=Q.length){var t=pt();s.appendChild(mk("div","qz-end",t[0]===Q.length?"Great job! "+t[0]+" of "+Q.length+" correct":t[0]+" of "+Q.length+" correct"));
+    var again=mk("button","qz-bo","Start again");again.type="button";again.onclick=function(){pans={};pi=0;pdraw();};s.appendChild(again);ov.appendChild(s);return;}
+  var q=Q[pi];s.appendChild(mk("div","qz-top","Question "+(pi+1)+" of "+Q.length+"  ·  "+pt()[0]+" correct so far"));
+  var im=mk("img");im.src=q.pic;im.alt="";s.appendChild(im);
+  var row=mk("div","qz-big");
+  q.opts.forEach(function(w,j){
+    var b=mk("button","qz-bo",L[j]+". "+w);b.type="button";
+    var done=pans[pi]!=null;
+    if(done){if(j===q.ans)b.classList.add("right");else if(j===pans[pi])b.classList.add("wrong");else b.classList.add("dim");}
+    b.onclick=function(){if(pans[pi]!=null)return;pans[pi]=j;say(pi);pdraw();};row.appendChild(b);});
+  s.appendChild(row);
+  var rv=mk("button","qz-btn","Show the answer (Enter)");rv.type="button";rv.hidden=pans[pi]!=null;rv.onclick=function(){pans[pi]=-1;say(pi);pdraw();};s.appendChild(rv);
+  ov.appendChild(s);
+  var pv=mk("button","td-arrow","\u2039");pv.type="button";pv.setAttribute("aria-label","Previous");pv.disabled=pi===0;pv.onclick=function(){go(pi-1);};
+  var nx=mk("button","td-arrow","\u203a");nx.type="button";nx.setAttribute("aria-label","Next");nx.onclick=function(){go(pi+1);};
+  var nav=mk("div","td-nav");nav.style.cssText="position:fixed;top:50%;left:0;right:0;transform:translateY(-50%);justify-content:space-between;padding:0 2vw;pointer-events:none";if(window.innerWidth<760){nav.style.top="auto";nav.style.bottom="2vh";nav.style.transform="none";}pv.style.pointerEvents=nx.style.pointerEvents="auto";nav.appendChild(pv);nav.appendChild(nx);ov.appendChild(nav);}
+function go(k){pi=Math.max(0,Math.min(Q.length,k));pdraw();}
+function popen(){ov.hidden=false;pi=0;pans={};pdraw();document.body.style.overflow="hidden";}
+function pclose(){a.pause();ov.hidden=true;document.body.style.overflow="";}
+$("#projbtn").onclick=popen;
+document.addEventListener("keydown",function(e){if(ov.hidden)return;if(e.key==="Escape")pclose();else if(e.key==="ArrowRight")go(pi+1);else if(e.key==="ArrowLeft")go(pi-1);else if(e.key==="Enter"&&pi<Q.length&&pans[pi]==null){pans[pi]=-1;say(pi);pdraw();}else if(e.key===" "&&pi<Q.length&&pans[pi]!=null){e.preventDefault();say(pi);}});
+})();</script></body></html>
