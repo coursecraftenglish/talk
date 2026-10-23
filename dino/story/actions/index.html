@@ -55,4 +55,5 @@ document.getElementById("projbtn").onclick=function(){chain=false;popen();play()
 var _go=go;go=function(k){_go(k);if(!ov.hidden)pdraw();};
 document.addEventListener("keydown",function(e){if(ov.hidden)return;if(e.key==="Escape")pclose();else if(e.key==="ArrowRight"&&i<L.length-1){e.stopImmediatePropagation();chain=false;go(i+1);play();}else if(e.key==="ArrowLeft"&&i>0){e.stopImmediatePropagation();chain=false;go(i-1);play();}else if(e.key===" "){e.preventDefault();e.stopImmediatePropagation();chain=false;play();}},true);
 go(0);})();</script>
-<script type="module" src="../../../assets/myturn.js?v=7"></script></body></html>
+<script type="module" src="../../../assets/myturn.js?v=7"></script><script src="../../../assets/sticky.js?v=1" defer></script>
+</body></html>
